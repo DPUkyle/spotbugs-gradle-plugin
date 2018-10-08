@@ -4,15 +4,19 @@ import java.io.Serializable;
 
 public class SpotBugsResult implements Serializable {
   private static final long serialVersionUID = 1L;
-  private final int bugCount;
-  private final int missingClassCount;
-  private final int errorCount;
-  private final Throwable exception;
+  private int bugCount;
+  private int missingClassCount;
+  private int errorCount;
+  private Throwable exception;
 
+  public SpotBugsResult() {}
+
+  @Deprecated()
   public SpotBugsResult(int bugCount, int missingClassCount, int errorCount) {
       this(bugCount, missingClassCount, errorCount, null);
   }
 
+  @Deprecated()
   public SpotBugsResult(int bugCount, int missingClassCount, int errorCount, Throwable exception) {
       this.bugCount = bugCount;
       this.missingClassCount = missingClassCount;
@@ -24,15 +28,31 @@ public class SpotBugsResult implements Serializable {
       return bugCount;
   }
 
+  public void setBugCount(int bugCount) {
+    this.bugCount = bugCount;
+  }
+
   public int getMissingClassCount() {
       return missingClassCount;
+  }
+
+  public void setMissingClassCount(int missingClassCount) {
+    this.missingClassCount = missingClassCount;
   }
 
   public int getErrorCount() {
       return errorCount;
   }
 
+  public void setErrorCount(int errorCount) {
+    this.errorCount = errorCount;
+  }
+
   public Throwable getException() {
       return exception;
+  }
+
+  public void setException(Throwable exception) {
+    this.exception = exception;
   }
 }

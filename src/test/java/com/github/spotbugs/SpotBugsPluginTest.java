@@ -49,7 +49,7 @@ public class SpotBugsPluginTest extends Assert{
 
   @Test
   public void TestSpotBugsTasksExist() throws Exception{
-    BuildResult result = GradleRunner.create().withProjectDir(folder.getRoot()).withArguments(Arrays.asList("tasks", "--all")).withPluginClasspath().build();
+    BuildResult result = GradleRunner.create().withProjectDir(folder.getRoot()).withArguments(Arrays.asList("tasks", "-is", "--all")).withPluginClasspath().build();
     assertTrue(result.getOutput().contains("spotbugsMain"));
     assertTrue(result.getOutput().contains("spotbugsTest"));
   }
@@ -58,7 +58,7 @@ public class SpotBugsPluginTest extends Assert{
   public void testSpotBugsTaskCanRun() throws Exception {
     BuildResult result = GradleRunner.create()
             .withProjectDir(folder.getRoot())
-            .withArguments(Arrays.asList("compileJava", "spotbugsMain"))
+            .withArguments(Arrays.asList("compileJava", "spotbugsMain", "-is"))
             .withPluginClasspath().build();
     Optional<BuildTask> spotbugsMain = findTask(result, ":spotbugsMain");
     assertTrue(spotbugsMain.isPresent());
