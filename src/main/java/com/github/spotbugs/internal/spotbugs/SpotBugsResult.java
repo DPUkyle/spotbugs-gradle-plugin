@@ -9,14 +9,10 @@ public class SpotBugsResult implements Serializable {
   private int errorCount;
   private Throwable exception;
 
-  public SpotBugsResult() {}
-
-  @Deprecated()
   public SpotBugsResult(int bugCount, int missingClassCount, int errorCount) {
       this(bugCount, missingClassCount, errorCount, null);
   }
 
-  @Deprecated()
   public SpotBugsResult(int bugCount, int missingClassCount, int errorCount, Throwable exception) {
       this.bugCount = bugCount;
       this.missingClassCount = missingClassCount;

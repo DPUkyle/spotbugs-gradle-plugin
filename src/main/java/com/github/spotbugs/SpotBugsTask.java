@@ -2,8 +2,6 @@ package com.github.spotbugs;
 
 import com.github.spotbugs.internal.spotbugs.SpotBugsRunner;
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,13 +10,11 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.reporting.Reporting;
-import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -38,13 +34,11 @@ import org.gradle.util.ConfigureUtil;
 import com.github.spotbugs.internal.SpotBugsReportsImpl;
 import com.github.spotbugs.internal.SpotBugsReportsInternal;
 import com.github.spotbugs.internal.spotbugs.SpotBugsClasspathValidator;
-import com.github.spotbugs.internal.spotbugs.SpotBugsResult;
 import com.github.spotbugs.internal.spotbugs.SpotBugsSpec;
 import com.github.spotbugs.internal.spotbugs.SpotBugsSpecBuilder;
 
 import groovy.lang.Closure;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
@@ -236,10 +230,9 @@ public class SpotBugsTask extends SourceTask implements VerificationTask, Report
         new SpotBugsClasspathValidator(JavaVersion.current()).validateClasspath(
                 getSpotbugsClasspath().getFiles().stream().map(File::getName).collect(Collectors.toSet()));
         SpotBugsSpec spec = generateSpec();
-        SpotBugsResult result = new SpotBugsResult();
 
         workerExecutor.submit(SpotBugsRunner.class, config -> {
-            config.params(spec, result);
+            config.params(spec, getIgnoreFailures(), reports.getFirstEnabled().getDestination());
             config.setClasspath(getSpotbugsClasspath());
             config.setForkMode(ForkMode.ALWAYS);
             config.forkOptions( options -> {
@@ -249,7 +242,6 @@ public class SpotBugsTask extends SourceTask implements VerificationTask, Report
             });
             config.setIsolationMode(IsolationMode.PROCESS);
         });
-        evaluateResult(result);
     }
 
     SpotBugsSpec generateSpec() {
@@ -272,41 +264,6 @@ public class SpotBugsTask extends SourceTask implements VerificationTask, Report
                 .configureReports(getReports());
 
         return specBuilder.build();
-    }
-
-    void evaluateResult(SpotBugsResult result) {
-        if (result.getException() != null) {
-            throw new GradleException("SpotBugs encountered an error. Run with --debug to get more information.", result.getException());
-        }
-
-        if (result.getErrorCount() > 0) {
-            throw new GradleException("SpotBugs encountered an error. Run with --debug to get more information.");
-        }
-
-        if (result.getBugCount() > 0) {
-            String message = "SpotBugs rule violations were found.";
-            SingleFileReport report = reports.getFirstEnabled();
-            if (report != null) {
-                String reportUrl = asClickableFileUrl(report.getDestination());
-                message += " See the report at: " + reportUrl;
-            }
-
-            if (getIgnoreFailures()) {
-                getLogger().warn(message);
-            } else {
-                throw new GradleException(message);
-            }
-
-        }
-
-    }
-
-    private String asClickableFileUrl(File file) {
-        try {
-            return new URI("file", "", file.toURI().getPath()).toString();
-        } catch (URISyntaxException e) {
-            throw new GradleException("Unable to parse path to destination file", e);
-        }
     }
 
     public SpotBugsTask extraArgs(Iterable<String> arguments) {
